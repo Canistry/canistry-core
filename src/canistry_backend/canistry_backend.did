@@ -1,3 +1,9 @@
+type CanisterCode = record {
+    code: blob;
+};
+
 service : {
-    "greet": (text) -> (text) query;
+    deploy_canister: (CanisterCode) -> (text);
+    get_canister_metrics: (text) -> (text) query;
+    set_alert: (text, nat) -> (text);
 }
