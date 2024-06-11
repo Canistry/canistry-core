@@ -1,31 +1,43 @@
-import { useState } from 'react';
-import { canistry_backend } from 'declarations/canistry_backend';
+import React, { useState } from 'react';
+import ReactDOM from 'react-dom';
+import { Actor, HttpAgent } from '@dfinity/agent';
+import { idlFactory as canistry_backend_idl, canisterId as canistry_backend_id } from 'dfx-generated/canistry_backend';
+
+const agent = new HttpAgent();
+const canistryBackend = Actor.createActor(canistry_backend_idl, { agent, canisterId: canistry_backend_id });
 
 function App() {
-  const [greeting, setGreeting] = useState('');
+  const [deployMessage, setDeployMessage] = useState('');
+  const [metrics, setMetrics] = useState('');
+  const [alertMessage, setAlertMessage] = useState('');
 
-  function handleSubmit(event) {
-    event.preventDefault();
-    const name = event.target.elements.name.value;
-    canistry_backend.greet(name).then((greeting) => {
-      setGreeting(greeting);
-    });
-    return false;
-  }
+  const deployCanister = async () => {
+    const canisterCode = { code: new Uint8Array([0, 1, 2, 3]) }; // Replace with actual canister code
+    const result = await canistryBackend.deploy_canister(canisterCode);
+    setDeployMessage(result);
+  };
+
+  const getMetrics = async () => {
+    const result = await canistryBackend.get_canister_metrics('bd3sg-teaaa-aaaaa-qaaba-cai');
+    setMetrics(result);
+  };
+
+  const setAlert = async () => {
+    const result = await canistryBackend.set_alert('bd3sg-teaaa-aaaaa-qaaba-cai', 100);
+    setAlertMessage(result);
+  };
 
   return (
-    <main>
-      <img src="/logo2.svg" alt="DFINITY logo" />
-      <br />
-      <br />
-      <form action="#" onSubmit={handleSubmit}>
-        <label htmlFor="name">Enter your name: &nbsp;</label>
-        <input id="name" alt="Name" type="text" />
-        <button type="submit">Click Me!</button>
-      </form>
-      <section id="greeting">{greeting}</section>
-    </main>
+    <div>
+      <h1>Canistry</h1>
+      <button type="button" onClick={deployCanister}>Deploy Canister</button>
+      <p>{deployMessage}</p>
+      <button type="button" onClick={getMetrics}>Get Canister Metrics</button>
+      <p>{metrics}</p>
+      <button type="button" onClick={setAlert}>Set Alert</button>
+      <p>{alertMessage}</p>
+    </div>
   );
 }
 
-export default App;
+ReactDOM.render(<App />, document.getElementById('root'));
